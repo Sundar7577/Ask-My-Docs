@@ -6,7 +6,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.36-FF4B4B?style=flat&logo=streamlit&logoColor=white)
 ![ChromaDB](https://img.shields.io/badge/ChromaDB-0.5-orange?style=flat)
-![Gemini](https://img.shields.io/badge/Gemini-1.5--flash-4285F4?style=flat&logo=google&logoColor=white)
+![Gemini](https://img.shields.io/badge/Gemini-2.5--flash-4285F4?style=flat&logo=google&logoColor=white)
 
 ---
 
@@ -45,7 +45,7 @@ User Query                │
 │         Prompt = System + Context + Query  │
 │                         │                  │
 │                         ▼                  │
-│              Google Gemini 1.5 Flash        │
+│              Google Gemini 2.5 Flash        │
 │              (Free tier LLM)               │
 │                         │                  │
 │                         ▼                  │
@@ -142,7 +142,7 @@ askmy-docs/
 | **PDF Parsing** | PyMuPDF | Fast, accurate text extraction |
 | **Embeddings** | Sentence Transformers | Free, runs locally, 384-dim vectors |
 | **Vector Store** | ChromaDB | Free, local, no sign-up needed |
-| **LLM** | Google Gemini 1.5 Flash | Free tier with generous limits |
+| **LLM** | Google Gemini 2.5 Flash | Free tier with generous limits |
 | **UI** | Streamlit | Rapid prototyping, clean UI |
 
 ---
