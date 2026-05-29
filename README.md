@@ -131,7 +131,7 @@ askmy-docs/
 | `CHUNK_SIZE` | `500` | Characters per chunk |
 | `CHUNK_OVERLAP` | `80` | Overlap between chunks |
 | `TOP_K` | `5` | Chunks retrieved per query |
-| `GEMINI_MODEL` | `gemini-1.5-flash` | Free Gemini model |
+| `GEMINI_MODEL` | `gemini-2.5-flash` | Free Gemini model |
 
 ---
 
