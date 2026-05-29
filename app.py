@@ -1,4 +1,4 @@
-# app.py — AskMyDocs Streamlit UI
+# app.py — AskMyDocs Streamlit UI (Premium Redesign)
 # Run with: streamlit run app.py
 
 import streamlit as st
@@ -11,387 +11,688 @@ from config import GEMINI_API_KEY
 # ─── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title  = "AskMyDocs",
-    page_icon   = "📚",
+    page_icon   = "📖",
     layout      = "wide",
     initial_sidebar_state = "expanded",
 )
 
-# ─── Custom CSS ───────────────────────────────────────────────────────────────
+# ─── Premium CSS ──────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@300;400;500;600&family=Geist:wght@300;400;500;600&display=swap');
 
-/* Global */
-html, body, [class*="css"] {
-    font-family: 'DM Mono', monospace;
-    background-color: #0d0f14;
-    color: #e2e8f0;
+/* ── Reset & base ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, [class*="css"], .stApp {
+    font-family: 'Geist', sans-serif;
+    background-color: #F7F4EF !important;
+    color: #1C1917;
 }
 
-/* Sidebar */
+/* ── Sidebar ──────────────────────────────────────────── */
 [data-testid="stSidebar"] {
-    background: #111318 !important;
-    border-right: 1px solid #1e2330;
+    background: #1C1917 !important;
+    border-right: none !important;
+    padding: 0 !important;
+}
+[data-testid="stSidebar"] > div:first-child {
+    padding: 2rem 1.5rem !important;
+}
+[data-testid="stSidebar"] * {
+    color: #D6D3CF !important;
+}
+[data-testid="stSidebar"] hr {
+    border-color: #2C2927 !important;
+    margin: 1.2rem 0 !important;
 }
 
-/* Main title */
-.main-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 2.6rem;
-    letter-spacing: -0.03em;
-    background: linear-gradient(135deg, #38bdf8 0%, #818cf8 60%, #f472b6 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 0.2rem;
-}
-
-.subtitle {
-    color: #64748b;
-    font-size: 0.85rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+/* ── Sidebar logo ─────────────────────────────────────── */
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #2C2927;
 }
-
-/* Chat messages */
-.chat-bubble-user {
-    background: #1e2330;
-    border: 1px solid #2a3244;
-    border-radius: 12px 12px 4px 12px;
-    padding: 1rem 1.2rem;
-    margin: 0.8rem 0;
-    margin-left: 15%;
-    color: #e2e8f0;
-    font-size: 0.9rem;
-    line-height: 1.6;
+.sidebar-logo-icon {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, #E8C547 0%, #F0A500 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
 }
-
-.chat-bubble-ai {
-    background: #0f1620;
-    border: 1px solid #1d3461;
-    border-left: 3px solid #38bdf8;
-    border-radius: 4px 12px 12px 12px;
-    padding: 1rem 1.2rem;
-    margin: 0.8rem 0;
-    margin-right: 15%;
-    color: #cbd5e1;
-    font-size: 0.9rem;
-    line-height: 1.7;
+.sidebar-logo-text {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.35rem;
+    color: #FAF9F7 !important;
+    line-height: 1;
 }
-
-.role-label {
-    font-size: 0.7rem;
+.sidebar-logo-sub {
+    font-family: 'Geist Mono', monospace;
+    font-size: 0.58rem;
+    color: #57534E !important;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    margin-bottom: 0.4rem;
-    font-weight: 600;
+    letter-spacing: 0.15em;
+    margin-top: 0.2rem;
 }
-.role-label-user { color: #818cf8; }
-.role-label-ai   { color: #38bdf8; }
 
-/* Source chunk cards */
-.chunk-card {
-    background: #111827;
-    border: 1px solid #1e2d3d;
-    border-radius: 8px;
-    padding: 0.8rem 1rem;
-    margin: 0.4rem 0;
+/* ── Sidebar section labels ───────────────────────────── */
+.sidebar-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: #57534E !important;
+    margin-bottom: 0.6rem;
+    display: block;
+}
+
+/* ── API key warning ──────────────────────────────────── */
+.api-warning {
+    background: #2C1810;
+    border: 1px solid #7C2D12;
+    border-left: 3px solid #F97316;
+    border-radius: 6px;
+    padding: 0.7rem 0.9rem;
     font-size: 0.78rem;
-    color: #94a3b8;
+    color: #FED7AA !important;
+    margin: 0.5rem 0;
+    line-height: 1.5;
+}
+.api-warning a { color: #F97316 !important; }
+
+/* ── Ingest success ───────────────────────────────────── */
+.ingest-success {
+    background: #0C1F14;
+    border: 1px solid #14532D;
+    border-left: 3px solid #22C55E;
+    border-radius: 6px;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.78rem;
+    color: #BBF7D0 !important;
+    margin: 0.5rem 0;
     line-height: 1.6;
 }
 
-.chunk-meta {
-    font-size: 0.7rem;
-    color: #475569;
-    margin-bottom: 0.4rem;
-    font-family: 'DM Mono', monospace;
-}
-
-.score-bar-container {
-    background: #1e2330;
-    border-radius: 4px;
-    height: 4px;
-    margin-top: 0.5rem;
-}
-
-.score-bar {
-    height: 4px;
-    border-radius: 4px;
-    background: linear-gradient(90deg, #38bdf8, #818cf8);
-}
-
-/* Stat chips */
-.stat-chip {
-    display: inline-block;
-    background: #1a2236;
-    border: 1px solid #243050;
-    border-radius: 20px;
-    padding: 0.25rem 0.8rem;
-    font-size: 0.75rem;
-    color: #64748b;
-    margin: 0.2rem;
-}
-
-/* File tag */
-.file-tag {
-    background: #0f2339;
-    border: 1px solid #1e4067;
-    border-radius: 6px;
-    padding: 0.3rem 0.7rem;
-    font-size: 0.78rem;
-    color: #38bdf8;
+/* ── Document pill ────────────────────────────────────── */
+.doc-pill {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 0.3rem 0;
+    background: #2C2927;
+    border: 1px solid #3C3937;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    margin: 0.35rem 0;
+    font-size: 0.75rem;
+    color: #D6D3CF !important;
+    transition: border-color 0.15s;
+}
+.doc-pill:hover { border-color: #E8C547; }
+.doc-pill-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 140px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 0.72rem;
+    color: #A8A29E !important;
+}
+.doc-pill-icon { color: #E8C547 !important; margin-right: 0.4rem; }
+
+/* ── Stack info footer ────────────────────────────────── */
+.stack-info {
+    background: #141211;
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    margin-top: 1rem;
+}
+.stack-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0;
+    font-size: 0.7rem;
+    border-bottom: 1px solid #2C2927;
+}
+.stack-row:last-child { border-bottom: none; }
+.stack-key {
+    font-family: 'Geist Mono', monospace;
+    color: #57534E !important;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.62rem;
+}
+.stack-val { color: #E8C547 !important; font-size: 0.72rem; }
+
+/* ── Main container ───────────────────────────────────── */
+.main-header {
+    padding: 2.5rem 0 2rem 0;
+    border-bottom: 1px solid #E5E1D8;
+    margin-bottom: 2rem;
+}
+.main-eyebrow {
+    font-family: 'Geist Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: #A09880;
+    margin-bottom: 0.6rem;
+}
+.main-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 3.2rem;
+    font-weight: 400;
+    color: #1C1917;
+    line-height: 1.05;
+    margin-bottom: 0.5rem;
+}
+.main-title em {
+    font-style: italic;
+    color: #B5860D;
+}
+.main-subtitle {
+    font-size: 0.88rem;
+    color: #78716C;
+    font-weight: 300;
+    max-width: 520px;
+    line-height: 1.6;
 }
 
-/* Buttons */
+/* ── Stat chips ───────────────────────────────────────── */
+.stats-row {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+}
+.stat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #FFFFFF;
+    border: 1px solid #E5E1D8;
+    border-radius: 100px;
+    padding: 0.3rem 0.85rem;
+    font-family: 'Geist Mono', monospace;
+    font-size: 0.7rem;
+    color: #57534E;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.stat-chip-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #22C55E;
+    display: inline-block;
+}
+.stat-chip-dot-amber { background: #F59E0B; }
+.stat-chip-dot-blue  { background: #3B82F6; }
+
+/* ── Chat messages ────────────────────────────────────── */
+.chat-wrap { max-width: 780px; margin: 0 auto; }
+
+.msg-user {
+    display: flex;
+    justify-content: flex-end;
+    margin: 1.2rem 0;
+}
+.msg-user-inner {
+    background: #1C1917;
+    color: #FAF9F7;
+    border-radius: 18px 18px 4px 18px;
+    padding: 0.9rem 1.2rem;
+    max-width: 72%;
+    font-size: 0.9rem;
+    line-height: 1.65;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}
+
+.msg-ai {
+    display: flex;
+    gap: 0.75rem;
+    margin: 1.2rem 0;
+    align-items: flex-start;
+}
+.msg-ai-avatar {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #E8C547, #F0A500);
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    margin-top: 2px;
+    box-shadow: 0 2px 8px rgba(232,197,71,0.3);
+}
+.msg-ai-inner {
+    background: #FFFFFF;
+    border: 1px solid #E5E1D8;
+    border-radius: 4px 18px 18px 18px;
+    padding: 0.9rem 1.2rem;
+    max-width: 82%;
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: #1C1917;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.msg-ai-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #A09880;
+    margin-bottom: 0.4rem;
+}
+
+/* ── Source chunk cards ───────────────────────────────── */
+.chunk-grid { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; }
+.chunk-card {
+    background: #FAFAF8;
+    border: 1px solid #E5E1D8;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.78rem;
+    color: #57534E;
+    line-height: 1.6;
+    position: relative;
+    overflow: hidden;
+}
+.chunk-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, #E8C547, #F0A500);
+}
+.chunk-meta {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 0.4rem;
+    font-family: 'Geist Mono', monospace;
+    font-size: 0.65rem;
+    color: #A09880;
+}
+.chunk-tag {
+    background: #F7F4EF;
+    border: 1px solid #E5E1D8;
+    border-radius: 4px;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.62rem;
+}
+.score-track {
+    height: 3px;
+    background: #E5E1D8;
+    border-radius: 2px;
+    margin-top: 0.6rem;
+    overflow: hidden;
+}
+.score-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #E8C547, #22C55E);
+    border-radius: 2px;
+    transition: width 0.6s ease;
+}
+
+/* ── Empty state ──────────────────────────────────────── */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    max-width: 460px;
+    margin: 0 auto;
+}
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+.empty-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.6rem;
+    color: #1C1917;
+    margin-bottom: 0.5rem;
+}
+.empty-desc {
+    font-size: 0.85rem;
+    color: #A09880;
+    line-height: 1.6;
+}
+.empty-arrow {
+    display: inline-block;
+    margin-top: 1.5rem;
+    font-family: 'Geist Mono', monospace;
+    font-size: 0.72rem;
+    color: #E8C547;
+    background: #1C1917;
+    border-radius: 100px;
+    padding: 0.4rem 1rem;
+    letter-spacing: 0.05em;
+}
+
+/* ── Streamlit overrides ──────────────────────────────── */
 .stButton > button {
-    background: linear-gradient(135deg, #1d3461, #1e2d4d) !important;
-    border: 1px solid #2a4a7f !important;
-    color: #93c5fd !important;
-    border-radius: 8px !important;
-    font-family: 'DM Mono', monospace !important;
-    font-size: 0.82rem !important;
-    transition: all 0.2s ease !important;
+    background: #2C2927 !important;
+    border: 1px solid #3C3937 !important;
+    color: #D6D3CF !important;
+    border-radius: 7px !important;
+    font-family: 'Geist', sans-serif !important;
+    font-size: 0.78rem !important;
+    padding: 0.35rem 0.75rem !important;
+    transition: all 0.15s ease !important;
 }
 .stButton > button:hover {
-    background: linear-gradient(135deg, #1e4080, #2563eb) !important;
-    color: #fff !important;
-    border-color: #3b82f6 !important;
+    background: #3C3937 !important;
+    border-color: #E8C547 !important;
+    color: #E8C547 !important;
+}
+section[data-testid="stSidebar"] .stButton > button {
+    width: 100% !important;
+    background: #2C2927 !important;
 }
 
-/* Input box */
-.stTextInput > div > div > input,
-.stChatInput > div > div > input,
-textarea {
-    background: #111827 !important;
-    border: 1px solid #1e2d3d !important;
-    border-radius: 8px !important;
-    color: #e2e8f0 !important;
-    font-family: 'DM Mono', monospace !important;
+.stTextInput > div > div > input {
+    background: #2C2927 !important;
+    border: 1px solid #3C3937 !important;
+    border-radius: 7px !important;
+    color: #D6D3CF !important;
+    font-family: 'Geist', sans-serif !important;
+    font-size: 0.85rem !important;
+}
+.stTextInput > div > div > input:focus {
+    border-color: #E8C547 !important;
+    box-shadow: 0 0 0 2px rgba(232,197,71,0.15) !important;
+}
+
+/* Chat input */
+[data-testid="stChatInput"] {
+    background: #FFFFFF !important;
+    border: 1px solid #E5E1D8 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
+}
+[data-testid="stChatInput"] textarea {
+    font-family: 'Geist', sans-serif !important;
     font-size: 0.88rem !important;
+    color: #1C1917 !important;
+}
+[data-testid="stChatInputSubmitButton"] svg { fill: #E8C547 !important; }
+
+/* File uploader */
+[data-testid="stFileUploader"] {
+    background: #2C2927 !important;
+    border: 1px dashed #3C3937 !important;
+    border-radius: 8px !important;
+}
+[data-testid="stFileUploader"]:hover {
+    border-color: #E8C547 !important;
 }
 
-/* Warning / Info */
-.warning-box {
-    background: #1a1500;
-    border: 1px solid #3d3000;
-    border-left: 3px solid #f59e0b;
-    border-radius: 6px;
-    padding: 0.8rem 1rem;
-    font-size: 0.82rem;
-    color: #fcd34d;
-    margin: 0.5rem 0;
+/* Multiselect */
+[data-testid="stMultiSelect"] > div {
+    background: #2C2927 !important;
+    border-color: #3C3937 !important;
+    border-radius: 7px !important;
 }
-
-.info-box {
-    background: #071628;
-    border: 1px solid #1d3d6b;
-    border-left: 3px solid #38bdf8;
-    border-radius: 6px;
-    padding: 0.8rem 1rem;
-    font-size: 0.82rem;
-    color: #7dd3fc;
-    margin: 0.5rem 0;
+.stMultiSelect span[data-baseweb="tag"] {
+    background: #E8C547 !important;
+    color: #1C1917 !important;
 }
-
-/* Divider */
-hr { border-color: #1e2330 !important; }
 
 /* Expander */
-.streamlit-expanderHeader {
-    background: #111318 !important;
-    color: #64748b !important;
-    font-size: 0.8rem !important;
+details summary {
+    font-family: 'Geist Mono', monospace !important;
+    font-size: 0.75rem !important;
+    color: #A09880 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+details {
+    background: #FAFAF8 !important;
+    border: 1px solid #E5E1D8 !important;
+    border-radius: 8px !important;
+    padding: 0.5rem 0.75rem !important;
+    margin-top: 0.4rem !important;
 }
 
+/* Spinner */
+.stSpinner > div { border-top-color: #E8C547 !important; }
+
 /* Scrollbar */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #0d0f14; }
-::-webkit-scrollbar-thumb { background: #1e2d3d; border-radius: 2px; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #F7F4EF; }
+::-webkit-scrollbar-thumb { background: #D6D3CF; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #A09880; }
+
+/* Hide streamlit branding */
+#MainMenu, footer, header { visibility: hidden; }
 </style>
 """, unsafe_allow_html=True)
 
 
-# ─── Session state init ────────────────────────────────────────────────────────
+# ─── Session state ─────────────────────────────────────────────────────────────
 if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []          # [{role, content, chunks?}]
+    st.session_state.chat_history = []
 if "active_sources" not in st.session_state:
-    st.session_state.active_sources = []        # files to scope retrieval to
+    st.session_state.active_sources = []
 
 
-# ─── Sidebar ──────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+# SIDEBAR
+# ══════════════════════════════════════════════════════════════════════════════
 with st.sidebar:
+
+    # ── Logo ──
     st.markdown("""
-    <div style='padding: 0.5rem 0 1.5rem 0;'>
-        <div style='font-family: Syne, sans-serif; font-size: 1.4rem; font-weight: 800;
-                    background: linear-gradient(135deg, #38bdf8, #818cf8);
-                    -webkit-background-clip: text; -webkit-text-fill-color: transparent;'>
-            📚 AskMyDocs
+    <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">📖</div>
+        <div>
+            <div class="sidebar-logo-text">AskMyDocs</div>
+            <div class="sidebar-logo-sub">RAG · Gemini · ChromaDB</div>
         </div>
-        <div style='color: #334155; font-size: 0.7rem; text-transform: uppercase;
-                    letter-spacing: 0.1em; margin-top: 0.2rem;'>RAG · Gemini · ChromaDB</div>
     </div>
     """, unsafe_allow_html=True)
 
-    # ── API Key check ──
+    # ── API Key ──
+    st.markdown('<span class="sidebar-label">Gemini API Key</span>', unsafe_allow_html=True)
     api_key = GEMINI_API_KEY or st.text_input(
-        "Gemini API Key",
+        "key",
         type="password",
-        placeholder="AIza...",
-        help="Get a free key at aistudio.google.com",
+        placeholder="AIza••••••••••••••••••••",
+        label_visibility="collapsed",
     )
     if not api_key:
-        st.markdown("""<div class='warning-box'>
-            ⚠️ Add your Gemini API key to <code>.env</code> or paste it above.<br>
-            <a href='https://aistudio.google.com' target='_blank' style='color:#f59e0b;'>
-            Get free key →</a></div>""", unsafe_allow_html=True)
+        st.markdown("""<div class='api-warning'>
+            ⚠ No API key detected.<br>
+            Add to <code>.env</code> or paste above.<br>
+            <a href='https://aistudio.google.com' target='_blank'>Get free key →</a>
+        </div>""", unsafe_allow_html=True)
     else:
         import google.generativeai as genai
         genai.configure(api_key=api_key)
+        st.markdown("""<div style='font-family:Geist Mono,monospace;font-size:0.68rem;
+            color:#22C55E;margin:0.3rem 0 0.8rem;'>✓ API key active</div>""",
+            unsafe_allow_html=True)
 
     st.markdown("---")
 
-    # ── PDF Upload ──
-    st.markdown("<div style='font-size:0.75rem;color:#475569;text-transform:uppercase;"
-                "letter-spacing:0.1em;margin-bottom:0.6rem;'>Upload Documents</div>",
-                unsafe_allow_html=True)
-
+    # ── Upload ──
+    st.markdown('<span class="sidebar-label">Upload Documents</span>', unsafe_allow_html=True)
     uploaded_files = st.file_uploader(
-        "Drop PDFs here",
+        "upload",
         type=["pdf"],
         accept_multiple_files=True,
         label_visibility="collapsed",
     )
-
     if uploaded_files:
         for uf in uploaded_files:
-            with st.spinner(f"Ingesting {uf.name}…"):
+            with st.spinner(f"Indexing {uf.name}…"):
                 result = ingest_pdf(uf.read(), uf.name)
-            st.markdown(f"""<div class='info-box'>
-                ✅ <b>{result['filename']}</b><br>
+            st.markdown(f"""<div class='ingest-success'>
+                ✓ <b>{result['filename']}</b><br>
                 {result['pages']} pages · {result['chunks']} chunks indexed
             </div>""", unsafe_allow_html=True)
 
     st.markdown("---")
 
-    # ── Indexed documents ──
+    # ── Indexed docs ──
     sources = list_ingested_sources()
     count   = collection_count()
-
-    st.markdown(f"<div style='font-size:0.75rem;color:#475569;text-transform:uppercase;"
-                f"letter-spacing:0.1em;margin-bottom:0.6rem;'>Indexed Documents "
-                f"<span style='color:#1e4067;'>({count} chunks)</span></div>",
-                unsafe_allow_html=True)
+    st.markdown(
+        f'<span class="sidebar-label">Indexed Documents '
+        f'<span style="color:#E8C547;font-size:0.7rem;">({count} chunks)</span></span>',
+        unsafe_allow_html=True
+    )
 
     if not sources:
-        st.markdown("<div style='color:#334155;font-size:0.8rem;padding:0.5rem 0;'>"
-                    "No documents yet. Upload a PDF above.</div>", unsafe_allow_html=True)
+        st.markdown("""<div style='font-size:0.78rem;color:#57534E;
+            padding:0.75rem 0;font-style:italic;'>No documents yet.</div>""",
+            unsafe_allow_html=True)
     else:
-        # Scope filter
         selected = st.multiselect(
-            "Scope retrieval to:",
+            "scope",
             options=sources,
             default=sources,
             label_visibility="collapsed",
         )
         st.session_state.active_sources = selected if selected else sources
 
-        # Delete buttons
         for src in sources:
-            col1, col2 = st.columns([4, 1])
-            with col1:
-                st.markdown(f"<div style='font-size:0.78rem;color:#38bdf8;padding:0.3rem 0;"
-                            f"overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
-                            f"max-width:160px;' title='{src}'>📄 {src}</div>",
-                            unsafe_allow_html=True)
-            with col2:
+            c1, c2 = st.columns([5, 1])
+            with c1:
+                st.markdown(f"""<div class='doc-pill'>
+                    <span class='doc-pill-name'>
+                        <span class='doc-pill-icon'>▪</span>{src}
+                    </span>
+                </div>""", unsafe_allow_html=True)
+            with c2:
                 if st.button("✕", key=f"del_{src}"):
                     n = delete_source(src)
-                    st.success(f"Deleted {n} chunks")
-                    time.sleep(0.5)
+                    st.toast(f"Removed {n} chunks", icon="🗑️")
+                    time.sleep(0.4)
                     st.rerun()
 
     st.markdown("---")
 
-    # ── Controls ──
-    if st.button("🗑️ Clear chat history"):
+    # ── Clear chat ──
+    if st.button("↺  Clear conversation"):
         st.session_state.chat_history = []
         st.rerun()
 
+    # ── Stack info ──
     st.markdown("""
-    <div style='margin-top:1.5rem;padding-top:1rem;border-top:1px solid #1e2330;
-                font-size:0.7rem;color:#334155;line-height:1.8;'>
-        <div>🔗 <b style='color:#475569'>Embeddings:</b> all-MiniLM-L6-v2</div>
-        <div>🤖 <b style='color:#475569'>LLM:</b> gemini-1.5-flash</div>
-        <div>🗄️ <b style='color:#475569'>VectorDB:</b> ChromaDB (local)</div>
-        <div>📐 <b style='color:#475569'>Strategy:</b> Cosine similarity</div>
+    <div class="stack-info">
+        <div class="stack-row">
+            <span class="stack-key">Embeddings</span>
+            <span class="stack-val">MiniLM-L6-v2</span>
+        </div>
+        <div class="stack-row">
+            <span class="stack-key">LLM</span>
+            <span class="stack-val">Gemini 1.5 Flash</span>
+        </div>
+        <div class="stack-row">
+            <span class="stack-key">Vector DB</span>
+            <span class="stack-val">ChromaDB</span>
+        </div>
+        <div class="stack-row">
+            <span class="stack-key">Similarity</span>
+            <span class="stack-val">Cosine · Top-5</span>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
 
-# ─── Main area ────────────────────────────────────────────────────────────────
-st.markdown("<div class='main-title'>AskMyDocs</div>", unsafe_allow_html=True)
-st.markdown("<div class='subtitle'>Retrieval-Augmented Generation · Chat with your PDFs</div>",
-            unsafe_allow_html=True)
+# ══════════════════════════════════════════════════════════════════════════════
+# MAIN
+# ══════════════════════════════════════════════════════════════════════════════
 
-# Stats row
+# ── Header ──
+st.markdown("""
+<div class="main-header">
+    <div class="main-eyebrow">Document Intelligence</div>
+    <div class="main-title">Ask your <em>documents</em><br>anything.</div>
+    <div class="main-subtitle">
+        Upload PDFs, get precise answers — grounded in your content,
+        with full source traceability.
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Stats ──
 if collection_count() > 0:
-    sources = list_ingested_sources()
-    st.markdown(
-        f"<span class='stat-chip'>📄 {len(sources)} document(s)</span>"
-        f"<span class='stat-chip'>🧩 {collection_count()} chunks</span>"
-        f"<span class='stat-chip'>🎯 Top-5 retrieval</span>"
-        f"<span class='stat-chip'>🌡️ Cosine similarity</span>",
-        unsafe_allow_html=True,
-    )
-    st.markdown("<br>", unsafe_allow_html=True)
+    srcs = list_ingested_sources()
+    st.markdown(f"""
+    <div class="stats-row">
+        <span class="stat-chip"><span class="stat-chip-dot"></span>{len(srcs)} document(s) indexed</span>
+        <span class="stat-chip"><span class="stat-chip-dot stat-chip-dot-amber"></span>{collection_count()} vector chunks</span>
+        <span class="stat-chip"><span class="stat-chip-dot stat-chip-dot-blue"></span>Top-5 retrieval</span>
+        <span class="stat-chip">Cosine similarity</span>
+    </div>
+    """, unsafe_allow_html=True)
 
-# ── Chat history display ──
+# ── Chat messages ──
+st.markdown('<div class="chat-wrap">', unsafe_allow_html=True)
+
 for msg in st.session_state.chat_history:
     if msg["role"] == "user":
         st.markdown(f"""
-        <div class='chat-bubble-user'>
-            <div class='role-label role-label-user'>You</div>
-            {msg['content']}
+        <div class="msg-user">
+            <div class="msg-user-inner">{msg['content']}</div>
         </div>""", unsafe_allow_html=True)
     else:
         st.markdown(f"""
-        <div class='chat-bubble-ai'>
-            <div class='role-label role-label-ai'>Assistant</div>
-            {msg['content']}
+        <div class="msg-ai">
+            <div class="msg-ai-avatar">✦</div>
+            <div class="msg-ai-inner">
+                <div class="msg-ai-label">AskMyDocs</div>
+                {msg['content']}
+            </div>
         </div>""", unsafe_allow_html=True)
 
-        # Show source chunks in expander
         if msg.get("chunks"):
-            with st.expander(f"📎 {len(msg['chunks'])} source chunks used"):
+            with st.expander(f"  {len(msg['chunks'])} source passages retrieved"):
+                st.markdown('<div class="chunk-grid">', unsafe_allow_html=True)
                 for i, chunk in enumerate(msg["chunks"], 1):
                     pct = int(chunk["score"] * 100)
+                    preview = chunk['text'][:350] + ('…' if len(chunk['text']) > 350 else '')
                     st.markdown(f"""
-                    <div class='chunk-card'>
-                        <div class='chunk-meta'>
-                            [{i}] {chunk['source']} · Page {chunk['page']} · Relevance {pct}%
+                    <div class="chunk-card">
+                        <div class="chunk-meta">
+                            <span class="chunk-tag">#{i}</span>
+                            <span>📄 {chunk['source']}</span>
+                            <span>Page {chunk['page']}</span>
+                            <span style="margin-left:auto;color:#E8C547;">{pct}% match</span>
                         </div>
-                        {chunk['text'][:400]}{'…' if len(chunk['text']) > 400 else ''}
-                        <div class='score-bar-container'>
-                            <div class='score-bar' style='width:{pct}%;'></div>
+                        <div style="color:#44403C;line-height:1.65;">{preview}</div>
+                        <div class="score-track">
+                            <div class="score-fill" style="width:{pct}%;"></div>
                         </div>
                     </div>""", unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# ── Empty state ──
+if collection_count() == 0:
+    st.markdown("""
+    <div class="empty-state">
+        <span class="empty-icon">📂</span>
+        <div class="empty-title">No documents yet</div>
+        <div class="empty-desc">
+            Upload a PDF in the sidebar. It'll be chunked, embedded locally
+            with Sentence Transformers, and stored in ChromaDB — ready to query instantly.
+        </div>
+        <div class="empty-arrow">← Upload a PDF to begin</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ── Chat input ──
-st.markdown("<br>", unsafe_allow_html=True)
-
-if collection_count() == 0:
-    st.markdown("""<div class='info-box'>
-        👈 Upload a PDF in the sidebar to get started. The system will chunk and embed it locally
-        using Sentence Transformers, then you can ask questions answered by Gemini.
-    </div>""", unsafe_allow_html=True)
-
 query = st.chat_input("Ask anything about your documents…")
 
 if query:
@@ -400,17 +701,15 @@ if query:
     elif collection_count() == 0:
         st.warning("Please upload at least one PDF first.")
     else:
-        # Append user message
         st.session_state.chat_history.append({"role": "user", "content": query})
 
-        with st.spinner("Retrieving relevant chunks and generating answer…"):
+        with st.spinner("Retrieving · Generating…"):
             result = generate_answer(
                 query         = query,
                 source_filter = st.session_state.active_sources or None,
                 chat_history  = st.session_state.chat_history,
             )
 
-        # Append AI response with chunks
         st.session_state.chat_history.append({
             "role":    "assistant",
             "content": result["answer"],
