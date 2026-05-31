@@ -1,10 +1,25 @@
+# .gitignore
+
+# Secrets — NEVER commit these
 .env
+
+# ChromaDB local data — too large for git, regenerated from PDFs
 chroma_db/
+
+# Python cache
 __pycache__/
 *.pyc
-.DS_Store
-*.egg-info/
-dist/
-build/
-.venv/
+*.pyo
+.pytest_cache/
+
+# Virtual environment
 venv/
+.venv/
+env/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
