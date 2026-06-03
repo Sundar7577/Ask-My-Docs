@@ -13,11 +13,7 @@ from typing import Optional
 from ingest import ingest_pdf, list_ingested_sources, delete_source, collection_count
 from generator import generate_answer
 
-# ─────────────────────────────────────────────────────────────────────────────
-# App setup
-# CONCEPT: FastAPI() creates your app. The metadata shows up in auto-generated
-# docs at /docs (Swagger UI) — free, interactive API docs with zero extra work.
-# ─────────────────────────────────────────────────────────────────────────────
+
 app = FastAPI(
     title="AskMyPDF API",
     description="Upload PDFs and ask questions using Gemini + ChromaDB RAG pipeline.",
