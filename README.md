@@ -72,7 +72,7 @@ User Query                │
 
 ## 🚀 Quick Start
 
-### 1. Clone / download
+### 1. Clone
 ```bash
 git clone https://github.com/yourname/askmy-docs.git
 cd askmy-docs
